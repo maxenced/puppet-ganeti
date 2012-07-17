@@ -18,13 +18,16 @@ class ganeti {
 
     service { 'hostname.sh': }
 
-    include ganeti::xen
-
-    # Só configura drbd e xenbridge se o kernel for xen
-    if $virtual == 'xen0'{
-        include ganeti::drbd
-        include ganeti::xenbridge
+    case $hypervisor {
+        "xen" : {
+            include ganeti::xen
+        }
+        "kvm" : {
+            include ganeti::kvm
+        }
     }
+    include ganeti::drbd
+    include ganeti::xenbridge
 }
 
 # vim: set ts=4 sw=4 et:
