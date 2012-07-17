@@ -9,14 +9,14 @@ class ganeti {
 
     file { '/etc/hostname':
         content => "$fqdn\n",
-        notify  => Service['hostname.sh'],
+        notify  => Service['hostname'],
     }
 
     file { '/etc/lvm/lvm.conf':
         source  => 'puppet:///ganeti/lvm/lvm.conf',
     }
 
-    service { 'hostname.sh': }
+    service { 'hostname': }
 
     case $hypervisor {
         "xen" : {
