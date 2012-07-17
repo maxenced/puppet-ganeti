@@ -1,5 +1,4 @@
 class ganeti::drbd {
-    include apt::debsrc_sources_list
 
     package { [ 'drbd8-utils']:
         ensure => installed,
