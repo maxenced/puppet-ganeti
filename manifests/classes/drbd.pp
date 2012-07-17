@@ -1,7 +1,7 @@
 class ganeti::drbd {
     include apt::debsrc_sources_list
 
-    package { ['drbd8-source', 'drbd8-utils']:
+    package { [ 'drbd8-utils']:
         ensure => installed,
         #notify => Exec['/usr/bin/m-a update'],
     }
@@ -9,7 +9,7 @@ class ganeti::drbd {
     if "$drbdmod" == "no" {
         exec { '/usr/bin/m-a update':
             #refreshonly => true,
-            require => Package['drbd8-source', 'drbd8-utils'],
+            require => Package['drbd8-utils'],
             notify => Exec['/usr/bin/m-a -i a-i drbd8'],
         }
     }
@@ -43,12 +43,12 @@ class ganeti::drbd {
         group   => 'root',
         mode    => 644,
         source  => 'puppet:///ganeti/drbd/drbd.conf',
-        require => Package['drbd8-source', 'drbd8-utils'],
+        require => Package['drbd8-utils'],
     }
 
     exec { "/usr/bin/perl -pi -e 's%^(\\s*)(filter.*)%\$1#\$2\\n    filter = [ \"r|/dev/cdrom|\", \"r|/dev/drbd[0-9]+|\" ]%' /etc/lvm/lvm.conf":
         unless => "/bin/grep -qE 'filter = .*drbd' /etc/lvm/lvm.conf",
-        require => Package['drbd8-source', 'drbd8-utils'],
+        require => Package['drbd8-utils'],
     }
 }
 
