@@ -28,20 +28,8 @@ class ganeti::xenbridge {
         before => Service['networking'],
     }
 
-    exec { '/bin/echo "        bridge_fd 9" >> /etc/network/interfaces':
-        unless => '/bin/grep -q "bridge_fd 9" /etc/network/interfaces',
-        notify => Service['networking'],
-        before => Service['networking'],
-    }
-
-    exec { '/bin/echo "        bridge_hello 2" >> /etc/network/interfaces':
-        unless => '/bin/grep -q "bridge_hello 2" /etc/network/interfaces',
-        notify => Service['networking'],
-        before => Service['networking'],
-    }
-
-    exec { '/bin/echo "        bridge_maxage 12" >> /etc/network/interfaces':
-        unless => '/bin/grep -q "bridge_maxage 12" /etc/network/interfaces',
+    exec { '/bin/echo "        bridge_fd 0" >> /etc/network/interfaces':
+        unless => '/bin/grep -q "bridge_fd 0" /etc/network/interfaces',
         notify => Service['networking'],
         before => Service['networking'],
     }
