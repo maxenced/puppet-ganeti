@@ -1,0 +1,102 @@
+#!/bin/bash
+#
+# This is an example script that install and configure grub after installation.
+# To use it put it in your CUSTOMIZE_DIR and make it executable.
+#
+# Do not include grub in EXTRA_PKGS of
+# $sysconfdir/default/ganeti-instance-debootstrap because it will
+# cause error of debootstrap.
+
+set -e
+
+. common.sh
+
+CLEANUP=( )
+
+trap cleanup EXIT
+
+if [ -z "$TARGET" -o ! -d "$TARGET" ]; then
+  echo "Missing target directory"
+  exit 1
+fi
+
+# install grub
+export LANG=C
+if [ "$PROXY" ]; then
+  export http_proxy="$PROXY"
+  export https_proxy="$PROXY"
+fi
+export DEBIAN_FRONTEND=noninteractive
+chroot "$TARGET" apt-get -y --force-yes install grub grub-common
+
+
+
+echo "* Grub: prepare device"
+
+## make /dev/vda
+mknod $TARGET/dev/vda b $(stat -L -c "0x%t 0x%T" $BLOCKDEV)
+CLEANUP+=("rm -f $TARGET/dev/vda")
+
+mknod $TARGET/dev/vda1 b $(stat -L -c "0x%t 0x%T" $FSYSDEV)
+CLEANUP+=("rm -f $TARGET/dev/vda1")
+
+
+mknod /dev/disk-$INSTANCE_UUID b $(stat -L -c "0x%t 0x%T" $BLOCKDEV)
+CLEANUP+=("rm -f /dev/disk-$INSTANCE_UUID")
+
+mknod /dev/disk-$INSTANCE_UUID-1 b $(stat -L -c "0x%t 0x%T" $FSYSDEV)
+CLEANUP+=("rm -f /dev/disk-$INSTANCE_UUID-1")
+
+# create grub directory
+mkdir -p "$TARGET/boot"
+
+echo "* Grub: copy file to /boot/grub"
+
+cp -a $TARGET/usr/lib/grub/*-pc/ $TARGET/boot/grub
+ls $TARGET/boot/grub/
+
+
+echo "* Grub: prepare fake device map"
+cat > "$TARGET/boot/grub/device.map" <<EOF
+(hd0) /dev/disk-$INSTANCE_UUID
+EOF
+cat $TARGET/boot/grub/device.map
+
+echo "* Grub: install"
+grub-install --no-floppy --root-directory="$TARGET" /dev/disk-$INSTANCE_UUID --modules="biosdisk part_msdos"
+
+echo "* Grub: prepare correct device map"
+cat > "$TARGET/boot/grub/device.map" <<EOF
+(hd0) /dev/vda
+EOF
+
+if [ "$SUITE" == "lucid" ] ; then
+cat >>  $TARGET/etc/grub.d/01_forcetimeout <<EOF
+#!/bin/bash -e
+source /usr/lib/grub/grub-mkconfig_lib
+echo 'set timeout=0'
+EOF
+fi
+
+cat >> $TARGET/etc/default/grub <<EOF
+GRUB_CMDLINE_LINUX="\$GRUB_CMDLINE_LINUX elevator=noop console=ttyS0,38400"
+GRUB_TERMINAL=console
+EOF
+
+echo "* grub: update-grub"
+chroot "$TARGET" update-grub
+
+echo "* grub: correction du grub.cfg"
+sed -i -e "s,$FSYSDEV,/dev/vda1,g" $TARGET/boot/grub/grub.cfg
+sed -i -e "s,${BLOCKDEV}p1,/dev/vda1,g" $TARGET/boot/grub/grub.cfg
+
+
+
+#################
+
+echo "* CLEANUP"
+cleanup
+trap - EXIT
+
+exit 0
+

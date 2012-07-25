@@ -1,10 +1,3 @@
-import "classes/clocksource.pp"
-import "classes/drbd.pp"
-import "classes/ganeti.pp"
-import "classes/hooks.pp"
-import "classes/kvm.pp"
-import "classes/ntp.pp"
-import "classes/xenbridge.pp"
 class ganeti {
     package { 'ganeti2': ensure => installed, }
 
@@ -33,10 +26,35 @@ class ganeti {
             include ganeti::kvm
         }
     }
+    line { "host_${clustername}":
+        file => "/etc/hosts",
+        line => "${clustername_ip} ${clustername}"
+    }
     include ganeti::drbd
     include ganeti::xenbridge
+    include ganeti::hosts
 }
 
-mport "classes/xen.pp"
+class ganeti::master {
+    include ganeti
+    exec { "gnt-cluster init --vg-name=${gnt_vgname} ${clustername}":
+        unless => "gnt-cluster getmaster",
+        require => [Line["host_${clustername}"], Exec["modprobe drbd"], Exec["echo modules"]],
+        alias => "create cluster",
+        notify => [Exec["enable vnc"], Exec["enable kvm"],Exec["fullvirt"]]
+    }
+    exec { "gnt-cluster modify -H kvm:vnc_bind_address=127.0.0.1":
+        refreshonly => true,
+        alias => "enable vnc"
+    }
+    exec { "gnt-cluster modify --enabled-hypervisors=kvm":
+        refreshonly => true,
+        alias => "enable kvm"
+    }
+    exec { "gnt-cluster modify -H kvm:kernel_path=":
+        refreshonly => true,
+        alias => "fullvirt"
+    }
+}
 
 # vim: set ts=4 sw=4 et:

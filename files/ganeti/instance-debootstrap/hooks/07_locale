@@ -15,8 +15,8 @@ $CAT <<EOF >$TARGET/etc/locale.gen
 
 en_US ISO-8859-1
 en_US.UTF-8 UTF-8
-pt_BR ISO-8859-1
-pt_BR.UTF-8 UTF-8
+fr_FR ISO-8859-1
+fr_FR.UTF-8 UTF-8
 EOF
 # Generate locale for packages
 chroot "$TARGET" /usr/sbin/locale-gen

@@ -4,7 +4,7 @@
 
 ECHO="/bin/echo"
 CAT="/bin/cat"
-TIMEZONE="America/Sao_Paulo"
+TIMEZONE="Europe/Paris"
 
 # Timezone
 $ECHO $TIMEZONE >  $TARGET/etc/timezone

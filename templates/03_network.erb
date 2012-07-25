@@ -21,8 +21,8 @@ iface eth${NIC} inet static
 	address $IP
 	netmask <%= netmask %>
 	gateway <%= defaultroute %>
-	dns-nameservers <%= nameservers.join(" ") %>
-	dns-search <%= dnssearch.join(" ") %>
+	dns-nameservers <%= nameservers %>
+	dns-search <%= dnssearch %>
 EOF
 done
 
