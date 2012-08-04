@@ -26,8 +26,10 @@ if [ "$PROXY" ]; then
   export http_proxy="$PROXY"
   export https_proxy="$PROXY"
 fi
-export DEBIAN_FRONTEND=noninteractive
-chroot "$TARGET" apt-get -y --force-yes install grub grub-common
+
+# We expect grub to be alreayd installed
+#export DEBIAN_FRONTEND=noninteractive
+#chroot "$TARGET" apt-get -y --force-yes install grub grub-common
 
 
 

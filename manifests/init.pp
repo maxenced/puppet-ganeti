@@ -1,8 +1,14 @@
 class ganeti {
-    package { 'ganeti2': ensure => installed, }
+    package { 'ganeti2': ensure => installed;
+        'ganeti-instance-debootstrap': ensure => installed
+        }
 
     $hostline = inline_template('<%= ipaddress %>	<%= fqdn %> <%= hostname %>')
 
+    file { "/etc/default/ganeti-instance-debootstrap":
+        source => "puppet:///ganeti/ganeti/ganeti-instance-debootstrap.default",
+        require => Package["ganeti-instance-debootstrap"]
+    }
     exec { "/usr/bin/perl -pi -e 's/^$ipaddress.*/$hostline/' /etc/hosts":
         unless => "/bin/grep -q '$hostline' /etc/hosts",
     }

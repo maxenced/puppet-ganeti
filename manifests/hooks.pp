@@ -5,23 +5,19 @@ class ganeti::hooks {
             ensure  => directory,
             owner   => 'root',
             group   => 'root',
-            #mode   => 644, # Cannot apply mode, or it will change ALL files
+            mode   => 755, # Cannot apply mode, or it will change ALL files
             source  => 'puppet:///ganeti/ganeti/instance-debootstrap',
             recurse => true,
             replace => true,
             force   => true,
             purge   => true,
             ignore  => [ '.git', '.swp', ],
-            notify  => [Exec['remover cache ganeti'],Exec['permissions hook']]
+            notify  => Exec['remover cache ganeti']
     }
 
-    exec { "chmod +x /etc/ganeti/instance-debootstrap/hooks/*":
-        alias => "permissions hook",
-        refreshonly => true
-    }
 
     # Purge cache files after modify hooks
-    exec { '/bin/rm -f /var/cache/ganeti-instance-debootstrap/cache-squeeze-amd64.tar':
+    exec { '/bin/rm -f /var/cache/ganeti-instance-debootstrap/*.tar':
         refreshonly => true,
         alias       => 'remover cache ganeti',
     }
